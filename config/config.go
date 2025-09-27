@@ -47,18 +47,17 @@ func Init() {
 	cfg := Get()
 	if err := cfg.load(); err != nil {
 		slog.Error(fmt.Sprintf("load config: %v", err))
-		if _, ok := err.(*os.PathError); ok {
-			if len(cfg.Servers) == 0 {
-				cfg.Servers = append(cfg.Servers, &Server{
-					Name:     "gost.run",
-					URL:      "https://api.gost.run",
-					Interval: 5 * time.Second,
-					Timeout:  10 * time.Second,
-					Readonly: true,
-				})
-			}
-			cfg.Write()
+		if len(cfg.Servers) == 0 {
+			cfg.Servers = append(cfg.Servers, &Server{
+				Name:     "gost.run",
+				URL:      "https://api.gost.run",
+				Interval: 5 * time.Second,
+				Timeout:  10 * time.Second,
+				Readonly: true,
+			})
 		}
+
+		cfg.Write()
 	}
 	Set(cfg)
 
@@ -68,14 +67,22 @@ func Init() {
 func initLog() {
 	cfg := Get().Log
 	if cfg == nil {
-		return
-	}
-
-	/*
 		logDir := filepath.Join(configDir, "logs")
 		os.MkdirAll(logDir, 0755)
 		slog.Info(fmt.Sprintf("log dir: %s", logDir))
-	*/
+
+		cfg = &Log{
+			Output: filepath.Join(logDir, logFile),
+			Level:  "info",
+			Format: "json",
+			Rotation: &LogRotation{
+				MaxSize:    10,
+				MaxAge:     7,
+				MaxBackups: 10,
+				LocalTime:  true,
+			},
+		}
+	}
 
 	var out io.Writer
 	switch cfg.Output {

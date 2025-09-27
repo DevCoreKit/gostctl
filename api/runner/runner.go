@@ -109,9 +109,12 @@ func (r *Runner) Exec(ctx context.Context, task Task, opts ...Option) error {
 		select {
 		case <-ctx.Done():
 		default:
-			r.events <- &TaskEvent{
+			select {
+			case r.events <- &TaskEvent{
 				TaskID: task.ID(),
 				Err:    err,
+			}:
+			default:
 			}
 		}
 
@@ -131,9 +134,12 @@ func (r *Runner) Exec(ctx context.Context, task Task, opts ...Option) error {
 			select {
 			case <-ctx.Done():
 			default:
-				r.events <- &TaskEvent{
+				select {
+				case r.events <- &TaskEvent{
 					TaskID: task.ID(),
 					Err:    err,
+				}:
+				default:
 				}
 			}
 		}
